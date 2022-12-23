@@ -23,6 +23,7 @@ import {
     Radar, Cell
 } from "recharts";
 import sendRequest from "../utils/sendRequest";
+import clsx from "clsx";
 
 const RenderJobsDetailsView = React.forwardRef((props, ref) => {
     const {
@@ -43,7 +44,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
     const sensorTempUrl = "https://iot-coursework.onrender.com/api/v1/sensors/data?type=temp";
     const sensorSmokeUrl = "https://iot-coursework.onrender.com/api/v1/sensors/data?type=smoke";
 
-    useEffect(() => {
+    const fetchData = () => {
         sendRequest(sensorOxygenUrl, 'GET').then((result) => {
             const data = [...result.data]
             const counters = {low: 0, normal: 0, high :0};
@@ -63,15 +64,15 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
 
             const pieChartData = [
                 {
-                    name: 'low oxygen',
+                    name: '% низького рівня оксигену',
                     value: Math.round((counters.low / data.length) * 100)
                 },
                 {
-                    name: 'normal oxygen',
+                    name: '% нормального рівня оксигену',
                     value: Math.round((counters.normal / data.length) * 100)
                 },
                 {
-                    name: 'high oxygen',
+                    name: '% високого рівня оксигену',
                     value: Math.round((counters.high / data.length) * 100)
                 },
             ];
@@ -79,12 +80,12 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
             const averageValue = data.reduce((previousValue, currentValue) => previousValue + currentValue.value, 0) / data.length;
             const averageData = [
                 {
-                    name: 'average value',
+                    name: 'середнє значення',
                     value: averageValue
                 },
                 {
-                    name: 'normal value',
-                    value: 15
+                    name: 'нормальне значення',
+                    value: 21
                 },
             ];
 
@@ -112,15 +113,15 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
 
             const pieChartData = [
                 {
-                    name: 'low temperature',
+                    name: '% низької температури',
                     value: Math.round((counters.low / data.length) * 100)
                 },
                 {
-                    name: 'normal temperature',
+                    name: '% нормальної температури',
                     value: Math.round((counters.normal / data.length) * 100)
                 },
                 {
-                    name: 'high temperature',
+                    name: '% високої температури',
                     value: Math.round((counters.high / data.length) * 100)
                 },
             ];
@@ -128,12 +129,12 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
             const averageValue = data.reduce((previousValue, currentValue) => previousValue + currentValue.value, 0) / data.length;
             const averageData = [
                 {
-                    name: 'average value',
+                    name: 'середнє значення',
                     value: averageValue
                 },
                 {
-                    name: 'normal value',
-                    value: 15
+                    name: 'нормальне значення',
+                    value: 19
                 },
             ];
 
@@ -160,17 +161,26 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                     value: 15
                 },
             ];
-
             setSmokeSensor(data);
             setAverageSmokeSensor(averageData);
         });
+    }
+
+    useEffect(() => {
+        fetchData();
+
+        const interval = setInterval(() => {
+            fetchData();
+        },600000)
+
+        return ()=> clearInterval(interval)
     }, []);
 
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
     return (
-        <DocsPage name="Graphs of sensors" searchDescription="Graphs of sensors">
-            <H2>Oxygen</H2>
+        <DocsPage name="Графіки сенсорів" searchDescription="Graphs of sensors">
+            <H2>Графік змін рівня оксигену</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={oxygenSensor}>
@@ -182,7 +192,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </LineChart>
             </ResponsiveContainer>
 
-            <H2>Temperature</H2>
+            <H2>Графік зміни температури</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={tempSensor}>
@@ -194,7 +204,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </LineChart>
             </ResponsiveContainer>
 
-            <H2>Smoke</H2>
+            <H2>Графік задимлення</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={smokeSensor}>
@@ -206,7 +216,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </LineChart>
             </ResponsiveContainer>
 
-            <H2>Compare Oxygen</H2>
+            <H2>Порівняння середнього значення оксигену з нормальним</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={averageOxygenSensor}>
@@ -218,7 +228,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </BarChart>
             </ResponsiveContainer>
 
-            <H2>Compare Temperature</H2>
+            <H2>Порівняння середньої температури з нормальною</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <BarChart data={averageTempSensor}>
@@ -230,19 +240,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </BarChart>
             </ResponsiveContainer>
 
-            <H2>Compare Smoke</H2>
-
-            <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={averageSmokeSensor}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
-            </ResponsiveContainer>
-
-            <H2>Percent by values of Oxygen</H2>
+            <H2>Діаграма відсоткового розподілення значень рівня оксигену</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
@@ -255,7 +253,7 @@ const RenderJobsDetailsView = React.forwardRef((props, ref) => {
                 </PieChart>
             </ResponsiveContainer>
 
-            <H2>Percent by values of Temperature</H2>
+            <H2>Діаграма відсоткового розподілення значень температури</H2>
 
             <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
